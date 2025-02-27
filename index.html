@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Tic-Tac-Toe</title>
+    <style>
+        :root {
+            --classic-bg: #f0f0f0;
+            --classic-board: #fff;
+            --classic-cell: #eee;
+            --classic-x: #3498db;
+            --classic-o: #e74c3c;
+            --neon-bg: #000;
+            --neon-board: #222;
+            --neon-cell: #333;
+            --neon-x: #0ff;
+            --neon-o: #f0f;
+            --dark-bg: #121212;
+            --dark-board: #1e1e1e;
+            --dark-cell: #333;
+            --dark-x: #90ee90;
+            --dark-o: #ff69b4;
+            --futuristic-bg: linear-gradient(135deg, #003d5b, #001a2f);
+            --futuristic-board: #005a82;
+            --futuristic-cell: #004266;
+            --futuristic-x: #48d1cc;
+            --futuristic-o: #ff6b6b;
+            --transition-speed: 0.3s;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            transition: background-color var(--transition-speed);
+        }
+        .container {
+            text-align: center;
+        }
+        #theme-toggle {
+            margin-bottom: 20px;
+            padding: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color var(--transition-speed);
+        }
+        .ultimate-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 15px;
+            border: 3px solid;
+            padding: 10px;
+            background-color: var(--board-color);
+            border-radius: 10px;
+        }
+        .small-board {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            grid-gap: 5px;
+            border: 2px solid;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid;
+            border-radius: 3px;
+            background-color: var(--cell-color);
+            transition: background-color var(--transition-speed), transform 0.2s;
+        }
+        .cell:hover {
+            transform: scale(1.1);
+        }
+        .cell.x {
+            color: var(--x-color);
+        }
+        .cell.o {
+            color: var(--o-color);
+        }
+        .cell.win {
+            animation: winAnimation 1s infinite;
+        }
+        @keyframes winAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .theme-classic {
+            --bg-color: var(--classic-bg);
+            --board-color: var(--classic-board);
+            --cell-color: var(--classic-cell);
+            --x-color: var(--classic-x);
+            --o-color: var(--classic-o);
+        }
+        .theme-neon {
+            --bg-color: var(--neon-bg);
+            --board-color: var(--neon-board);
+            --cell-color: var(--neon-cell);
+            --x-color: var(--neon-x);
+            --o-color: var(--neon-o);
+        }
+        .theme-dark {
+            --bg-color: var(--dark-bg);
+            --board-color: var(--dark-board);
+            --cell-color: var(--dark-cell);
+            --x-color: var(--dark-x);
+            --o-color: var(--dark-o);
+        }
+        .theme-futuristic {
+            --bg-color: var(--futuristic-bg);
+            --board-color: var(--futuristic-board);
+            --cell-color: var(--futuristic-cell);
+            --x-color: var(--futuristic-x);
+            --o-color: var(--futuristic-o);
+        }
+        body {
+            background: var(--bg-color);
+        }
+        .ultimate-board, .small-board, .cell {
+            border-color: var(--board-color);
+        }
+    </style>
+</head>
+<body class="theme-classic">
+    <div class="container">
+        <button id="theme-toggle">Toggle Theme</button>
+        <div class="ultimate-board" id="ultimateBoard"></div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ultimateBoard = document.getElementById('ultimateBoard');
+            const themeToggle = document.getElementById('theme-toggle');
+            let currentTheme = 'classic';
+            let currentPlayer = 'x';
+            let activeBoard = -1;
+            let gameBoard = Array(9).fill(null).map(() => Array(9).fill(null));
+            let boardWins = Array(9).fill(null);
+            function createBoard() {
+                for (let i = 0; i < 9; i++) {
+                    const smallBoard = document.createElement('div');
+                    smallBoard.classList.add('small-board');
+                    smallBoard.dataset.board = i;
+                    for (let j = 0; j < 9; j++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('cell');
+                        cell.dataset.index = j;
+                        cell.addEventListener('click', () => handleCellClick(i, j));
+                        smallBoard.appendChild(cell);
+                    }
+                    ultimateBoard.appendChild(smallBoard);
+                }
+            }
+            function handleCellClick(boardIndex, cellIndex) {
+                if (activeBoard !== -1 && activeBoard !== boardIndex) return;
+                if (gameBoard[boardIndex][cellIndex] !== null) return;
+                if (boardWins[boardIndex] !== null) return;
+                gameBoard[boardIndex][cellIndex] = currentPlayer;
+                const cell = ultimateBoard.children[boardIndex].children[cellIndex];
+                cell.classList.add(currentPlayer);
+                cell.textContent = currentPlayer.toUpperCase();
+                const win = checkWin(gameBoard[boardIndex]);
+                if (win) {
+                    boardWins[boardIndex] = currentPlayer;
+                    highlightWinningCells(ultimateBoard.children[boardIndex], win);
+                    const ultimateWin = checkWin(boardWins);
+                    if (ultimateWin) {
+                        alert(`Player ${currentPlayer.toUpperCase()} wins the game!`);
+                        highlightWinningBoards(ultimateWin);
+                        return;
+                    }
+                }
+                currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+                activeBoard = (boardWins[cellIndex] === null) ? cellIndex : -1;
+                updateActiveBoards();
+            }
+            function checkWin(board) {
+                const lines = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                for (let line of lines) {
+                    const [a, b, c] = line;
+                    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                        return line;
+                    }
+                }
+                return null;
+            }
+            function highlightWinningCells(boardElement, winningLine) {
+                for (let index of winningLine) {
+                    boardElement.children[index].classList.add('win');
+                }
+            }
+            function highlightWinningBoards(winningLine) {
+                for (let index of winningLine) {
+                    for (let cell of ultimateBoard.children[index].children) {
+                        cell.classList.add('win');
+                    }
+                }
+            }
+            function updateActiveBoards() {
+                for (let i = 0; i < 9; i++) {
+                    const smallBoard = ultimateBoard.children[i];
+                    if (activeBoard === -1 || activeBoard === i) {
+                        if (boardWins[i] === null) {
+                            smallBoard.style.borderColor = 'var(--x-color)';
+                        } else {
+                            smallBoard.style.borderColor = 'var(--board-color)';
+                        }
+                    } else {
+                        smallBoard.style.borderColor = 'var(--board-color)';
+                    }
+                }
+            }
+            function toggleTheme() {
+                const themes = ['classic', 'neon', 'dark', 'futuristic'];
+                let themeIndex = themes.indexOf(currentTheme);
+                themeIndex = (themeIndex + 1) % themes.length;
+                currentTheme = themes[themeIndex];
+                document.body.className = `theme-${currentTheme}`;
+            }
+            themeToggle.addEventListener('click', toggleTheme);
+            createBoard();
+        });
+    </script>
+</body>
+</html>
